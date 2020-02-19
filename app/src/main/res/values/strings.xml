@@ -8,6 +8,9 @@
     <string name="shuffed">Device was shuffed</string>
     <string name="noAccel">Sorry, there is no accelerometer</string>
     <string name="noLlum">\nSorry, there is no light sensor</string>
+    <string name="newV">\nNew value light sensor = </string>
+
+
 
 
 

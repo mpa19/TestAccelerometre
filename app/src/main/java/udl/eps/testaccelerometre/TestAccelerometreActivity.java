@@ -21,9 +21,9 @@ public class TestAccelerometreActivity extends Activity implements SensorEventLi
     private Sensor llum;
     private long lastUpdate;
     private long lastUpdateLight;
-    private float lastValue;
-
-
+    private float lastValue = 0;
+    private float umbralBaix;
+    private float umbralAlt;
 
 
     @Override
@@ -46,8 +46,6 @@ public class TestAccelerometreActivity extends Activity implements SensorEventLi
             registerSensors();
 
 
-        lastUpdate = System.currentTimeMillis();
-        lastUpdateLight = System.currentTimeMillis();
 
     }
 
@@ -64,16 +62,23 @@ public class TestAccelerometreActivity extends Activity implements SensorEventLi
             value += "Version: " + acc.getVersion() + "\n";
 
             viewDades.setText(value);
+            lastUpdate = System.currentTimeMillis();
 
         } else viewDades.setText(R.string.noAccel);
 
         if((llum = sensorManager.getDefaultSensor(Sensor.TYPE_LIGHT)) != null){
             sensorManager.registerListener(this, llum, SensorManager.SENSOR_DELAY_NORMAL);
+            float max = llum.getMaximumRange();
+            umbralBaix = max/3;
+            umbralAlt = umbralBaix*2;
+
             String value = "\n";
             value += "Name: " + llum.getName() + "\n";
-            value += "Maximum Range: " +  llum.getMaximumRange() + "LX" + "\n";
+            value += "Maximum Range: " + max + "LX" + "\n";
 
             viewDades.setText(viewDades.getText().toString()+value);
+            lastUpdateLight = System.currentTimeMillis();
+
         } else viewDades.setText(viewDades.toString()+R.string.noLlum);
     }
 
@@ -82,7 +87,6 @@ public class TestAccelerometreActivity extends Activity implements SensorEventLi
         if(event.sensor.getType() == Sensor.TYPE_ACCELEROMETER)
         {
             getAccelerometer(event);
-
         }
         if (event.sensor.getType() == Sensor.TYPE_LIGHT)
         {
@@ -95,20 +99,21 @@ public class TestAccelerometreActivity extends Activity implements SensorEventLi
         long actualTime = System.currentTimeMillis();
         String dades = "";
 
-        if (actualTime - lastUpdateLight < 200) return;
-        else if(value == lastValue) return;
+        float nouRegistre = value - lastValue;
+        if(nouRegistre > 1000 || nouRegistre < -1000) {
+            if (actualTime - lastUpdateLight < 200) return;
 
-        lastValue = value;
-        lastUpdateLight = actualTime;
+            lastValue = value;
+            lastUpdateLight = actualTime;
 
-        dades += "New value light sensor = " + value;
+            dades += getString(R.string.newV) + value;
 
-        if (value <= 15000) dades += "  LOW";
-        else if (value >= 25000) dades += " HIGH";
-        else dades += " MEDIUM";
+            if (value <= umbralBaix) dades += "  LOW";
+            else if (value >= umbralAlt) dades += " HIGH";
+            else dades += " MEDIUM";
 
-        viewLlum.setText(viewLlum.getText().toString()+dades+"\n");
-
+            viewLlum.setText(viewLlum.getText().toString() + dades + "\n");
+        }
     }
 
 
@@ -153,8 +158,9 @@ public class TestAccelerometreActivity extends Activity implements SensorEventLi
     }
 
     @Override
-    protected void onResume() {
-        super.onResume();
-        registerSensors();
+    protected void onStop() {
+
+        super.onStop();
+        sensorManager.unregisterListener(this);
     }
 }
