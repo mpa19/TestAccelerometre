@@ -163,4 +163,11 @@ public class TestAccelerometreActivity extends Activity implements SensorEventLi
         super.onStop();
         sensorManager.unregisterListener(this);
     }
+
+    // 2
+    @Override
+    protected void onResume() {
+        super.onResume();
+        registerSensors(); // 1
+    }
 }
